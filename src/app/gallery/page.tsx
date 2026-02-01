@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { getScreenshots, deleteScreenshot, setExpiry, type Screenshot } from "@/lib/supabase";
 import Link from "next/link";
+import Navbar from "@/components/Navbar";
 
 export default function GalleryPage() {
   const [screenshots, setScreenshots] = useState<Screenshot[]>([]);
@@ -37,15 +38,7 @@ export default function GalleryPage() {
 
   return (
     <div className="min-h-screen">
-      <nav className="border-b border-border px-6 py-4 flex items-center justify-between max-w-6xl mx-auto w-full">
-        <Link href="/" className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-white font-bold text-sm">S</div>
-          <span className="text-xl font-bold">ScreenSnap</span>
-        </Link>
-        <Link href="/" className="bg-primary hover:bg-primary-hover text-white px-4 py-2 rounded-lg text-sm font-medium transition">
-          Upload New
-        </Link>
-      </nav>
+      <Navbar />
 
       <main className="max-w-6xl mx-auto px-6 py-12">
         <h1 className="text-3xl font-bold mb-8">Your Screenshots</h1>
@@ -54,13 +47,13 @@ export default function GalleryPage() {
           <div className="text-center py-20">
             <div className="text-5xl mb-4">📭</div>
             <p className="text-muted mb-4">No screenshots yet</p>
-            <Link href="/" className="text-primary hover:underline">Upload your first screenshot →</Link>
+            <Link href="/" className="metallic-text-gradient font-medium hover:underline">Upload your first screenshot &rarr;</Link>
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {screenshots.map((s) => (
-              <div key={s.id} className="bg-card border border-border rounded-xl overflow-hidden group hover:border-primary/30 transition">
-                <div className="aspect-video bg-zinc-900 flex items-center justify-center overflow-hidden">
+              <div key={s.id} className="liquid-glass-card overflow-hidden group hover:scale-[1.02] transition-transform">
+                <div className="aspect-video bg-black/5 dark:bg-white/5 flex items-center justify-center overflow-hidden">
                   <img src={s.url} alt={s.filename} className="object-cover w-full h-full" />
                 </div>
                 <div className="p-4">
@@ -77,14 +70,14 @@ export default function GalleryPage() {
                   <div className="flex gap-2 mt-3">
                     <button
                       onClick={() => copyLink(s.id)}
-                      className="flex-1 bg-primary/10 text-primary hover:bg-primary/20 py-2 rounded-lg text-xs font-medium transition"
+                      className="chrome-pill-button primary flex-1 text-xs py-2"
                     >
                       {copiedId === s.id ? "✓ Copied" : "Copy Link"}
                     </button>
                     <select
                       onChange={(e) => handleExpiry(s.id, e.target.value === "never" ? null : Number(e.target.value))}
                       defaultValue={s.expiresAt ? "custom" : "never"}
-                      className="bg-zinc-800 border border-border rounded-lg px-2 py-2 text-xs text-muted"
+                      className="glass-input text-xs py-2 px-2"
                     >
                       <option value="never">No expiry</option>
                       <option value="1">1 hour</option>

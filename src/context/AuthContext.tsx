@@ -58,16 +58,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const timeout = new Promise<never>((_, reject) =>
           setTimeout(() => reject(new Error("Auth timeout")), 5000)
         );
-        const sessionPromise = supabase.auth.getSession();
-        const { data: { session }, error } = await Promise.race([sessionPromise, timeout]) as Awaited<typeof sessionPromise>;
+        const userPromise = supabase.auth.getUser();
+        const { data: { user: currentUser }, error } = await Promise.race([userPromise, timeout]) as Awaited<typeof userPromise>;
         if (!mounted) return;
         if (error) {
-          console.error("Auth getSession error:", error);
+          console.error("Auth getUser error:", error);
           setUser(null);
           setLoading(false);
           return;
         }
-        const currentUser = session?.user ?? null;
         setUser(currentUser);
         setLoading(false);
         if (currentUser) {
@@ -83,7 +82,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     loadUser();
 
-    const { data: subscription } = supabase.auth.onAuthStateChange(async (_event, session) => {
+    const { data: subscription } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event === "TOKEN_REFRESHED" && !session) {
+        // Token refresh in progress — don't clear user yet
+        return;
+      }
       const nextUser = session?.user ?? null;
       setUser(nextUser);
       setLoading(false);

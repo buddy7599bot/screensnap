@@ -35,7 +35,7 @@ async function ensureProfile(user: User, supabase: ReturnType<typeof createBrows
     .eq("id", user.id)
     .maybeSingle();
 
-  if (data?.id) return;
+  if ((data as any)?.id) return;
 
   const defaults = getProfileDefaults(user);
   await supabase.from("profiles").insert({

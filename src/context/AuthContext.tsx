@@ -29,16 +29,18 @@ function getProfileDefaults(user: User) {
 }
 
 async function ensureProfile(user: User, supabase: ReturnType<typeof createBrowserSupabaseClient>) {
-  const { data } = await supabase
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const sb = supabase as any;
+  const { data } = await sb
     .from("profiles")
     .select("id")
     .eq("id", user.id)
     .maybeSingle();
 
-  if ((data as any)?.id) return;
+  if (data?.id) return;
 
   const defaults = getProfileDefaults(user);
-  await supabase.from("profiles").insert({
+  await sb.from("profiles").insert({
     id: user.id,
     display_name: defaults.displayName,
     avatar_url: defaults.avatarUrl,

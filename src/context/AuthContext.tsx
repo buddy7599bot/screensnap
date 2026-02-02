@@ -55,22 +55,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     async function loadUser() {
       try {
-        const timeout = new Promise<never>((_, reject) =>
-          setTimeout(() => reject(new Error("Auth timeout")), 5000)
-        );
-        const userPromise = supabase.auth.getUser();
-        const { data: { user: currentUser }, error } = await Promise.race([userPromise, timeout]) as Awaited<typeof userPromise>;
+        // Use getSession() first - it reads from local storage, no network call
+        const { data: { session } } = await supabase.auth.getSession();
         if (!mounted) return;
-        if (error) {
-          console.error("Auth getUser error:", error);
-          setUser(null);
-          setLoading(false);
-          return;
-        }
+        const currentUser = session?.user ?? null;
         setUser(currentUser);
         setLoading(false);
         if (currentUser) {
           ensureProfile(currentUser, supabase).catch(console.error);
+          // Validate with server in background (refreshes token if needed)
+          supabase.auth.getUser().catch(console.error);
         }
       } catch (e) {
         console.error("Auth loadUser exception:", e);

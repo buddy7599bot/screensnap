@@ -15,8 +15,6 @@ export default function Navbar() {
   const avatarUrl = useMemo(() => {
     if (!user) return null;
     const m = user.user_metadata ?? {};
-    console.log("[Navbar] user_metadata:", JSON.stringify(m));
-    console.log("[Navbar] email:", user.email);
     return m.avatar_url || m.picture || null;
   }, [user]);
 
@@ -24,7 +22,6 @@ export default function Navbar() {
     if (!user) return "";
     const m = user.user_metadata ?? {};
     const name = m.full_name || m.name || user.email?.split("@")[0] || "User";
-    console.log("[Navbar] displayName:", name);
     return name;
   }, [user]);
 

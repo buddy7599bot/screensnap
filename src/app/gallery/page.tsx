@@ -48,13 +48,11 @@ export default function GalleryPage() {
 
   useEffect(() => {
     async function loadGallery() {
-      console.log("[Gallery] loadGallery called:", { loading, userId: user?.id ?? null });
       if (loading) return;
       if (!user) { setFetching(false); return; }
       setFetching(true);
       // Ensure the client has a valid session before querying
       const { data: { session } } = await supabase.auth.getSession();
-      console.log("[Gallery] session check before query:", !!session);
       if (!session) { setFetching(false); return; }
       const { data, error } = await supabase
         .from("screenshots")
@@ -64,7 +62,6 @@ export default function GalleryPage() {
         .eq("user_id", user.id)
         .order("created_at", { ascending: false });
 
-      console.log("[Gallery] query result:", { error, dataCount: data?.length ?? 0 });
       if (error) {
         console.error("Gallery fetch error:", error);
       }

@@ -60,12 +60,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       try {
         // Use getSession() first - it reads from local storage, no network call
         const { data: { session } } = await supabase.auth.getSession();
-        console.log("[Auth] getSession result:", !!session, session?.user?.email ?? "no user");
         if (!mounted) return;
         const currentUser = session?.user ?? null;
         setUser(currentUser);
         setLoading(false);
-        console.log("[Auth] loading set to false, user:", !!currentUser);
         if (currentUser) {
           ensureProfile(currentUser, supabase).catch(console.error);
           // Validate with server in background (refreshes token if needed)
@@ -82,7 +80,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     loadUser();
 
     const { data: subscription } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log("[Auth] onAuthStateChange:", event, !!session);
       // Only update user for definitive events
       if (event === "SIGNED_IN" || event === "TOKEN_REFRESHED") {
         const nextUser = session?.user ?? null;

@@ -2,7 +2,6 @@
 
 import { useState, useCallback, useRef, useEffect, useMemo } from "react";
 import { nanoid } from "nanoid";
-import { createBrowserSupabaseClient } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
 import Navbar from "@/components/Navbar";
 import { useScrollReveal } from "@/components/ScrollReveal";
@@ -293,8 +292,7 @@ function PixelGridReveal({ children }: { children: React.ReactNode }) {
 }
 
 export default function Home() {
-  const supabase = useMemo(() => createBrowserSupabaseClient(), []);
-  const { user, signInWithGoogle } = useAuth();
+  const { user, supabase, signInWithGoogle } = useAuth();
   const [uploading, setUploading] = useState(false);
   const [result, setResult] = useState<{ url: string; id: string } | null>(null);
   const [copied, setCopied] = useState(false);

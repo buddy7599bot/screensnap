@@ -1,11 +1,10 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Navbar from "@/components/Navbar";
 import { useAuth } from "@/context/AuthContext";
-import { createBrowserSupabaseClient } from "@/lib/supabase";
 
 type ScreenshotRow = {
   id: string;
@@ -36,8 +35,7 @@ function extractStoragePath(fileUrl: string) {
 }
 
 export default function GalleryPage() {
-  const supabase = useMemo(() => createBrowserSupabaseClient(), []);
-  const { user, loading } = useAuth();
+  const { user, loading, supabase } = useAuth();
   const router = useRouter();
   const [screenshots, setScreenshots] = useState<ScreenshotRow[]>([]);
   const [fetching, setFetching] = useState(true);
@@ -50,9 +48,14 @@ export default function GalleryPage() {
 
   useEffect(() => {
     async function loadGallery() {
+      console.log("[Gallery] loadGallery called:", { loading, userId: user?.id ?? null });
       if (loading) return;
       if (!user) { setFetching(false); return; }
       setFetching(true);
+      // Ensure the client has a valid session before querying
+      const { data: { session } } = await supabase.auth.getSession();
+      console.log("[Gallery] session check before query:", !!session);
+      if (!session) { setFetching(false); return; }
       const { data, error } = await supabase
         .from("screenshots")
         .select(
@@ -61,6 +64,7 @@ export default function GalleryPage() {
         .eq("user_id", user.id)
         .order("created_at", { ascending: false });
 
+      console.log("[Gallery] query result:", { error, dataCount: data?.length ?? 0 });
       if (error) {
         console.error("Gallery fetch error:", error);
       }

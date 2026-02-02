@@ -7,6 +7,7 @@ import { createBrowserSupabaseClient } from "@/lib/supabase";
 type AuthContextValue = {
   user: User | null;
   loading: boolean;
+  supabase: ReturnType<typeof createBrowserSupabaseClient>;
   signInWithGoogle: () => Promise<void>;
   signOut: () => Promise<void>;
 };
@@ -57,10 +58,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       try {
         // Use getSession() first - it reads from local storage, no network call
         const { data: { session } } = await supabase.auth.getSession();
+        console.log("[Auth] getSession result:", !!session, session?.user?.email ?? "no user");
         if (!mounted) return;
         const currentUser = session?.user ?? null;
         setUser(currentUser);
         setLoading(false);
+        console.log("[Auth] loading set to false, user:", !!currentUser);
         if (currentUser) {
           ensureProfile(currentUser, supabase).catch(console.error);
           // Validate with server in background (refreshes token if needed)
@@ -77,10 +80,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     loadUser();
 
     const { data: subscription } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (event === "TOKEN_REFRESHED" && !session) {
-        // Token refresh in progress — don't clear user yet
+      console.log("[Auth] onAuthStateChange:", event, !!session);
+      // Only update user for definitive events
+      if (event === "SIGNED_IN" || event === "TOKEN_REFRESHED") {
+        const nextUser = session?.user ?? null;
+        if (nextUser) {
+          setUser(nextUser);
+          setLoading(false);
+          await ensureProfile(nextUser, supabase);
+        }
         return;
       }
+      if (event === "SIGNED_OUT") {
+        setUser(null);
+        setLoading(false);
+        return;
+      }
+      // For INITIAL_SESSION and other events, update normally
       const nextUser = session?.user ?? null;
       setUser(nextUser);
       setLoading(false);
@@ -111,6 +127,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const value: AuthContextValue = {
     user,
     loading,
+    supabase,
     signInWithGoogle,
     signOut,
   };
